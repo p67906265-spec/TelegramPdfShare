@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="navy">#071522</color>
+    <color name="navy_card">#10283A</color>
+    <color name="navy_input">#0C2030</color>
+    <color name="cyan">#28D7F5</color>
+    <color name="cyan_dark">#0797B3</color>
+    <color name="white">#F6FAFD</color>
+    <color name="text_secondary">#AFC3D1</color>
+    <color name="green">#48D597</color>
+    <color name="warning">#FFB86B</color>
+    <color name="divider">#23465B</color>
+</resources>

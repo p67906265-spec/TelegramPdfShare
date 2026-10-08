@@ -1,0 +1,58 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'it.paolo.telegrampdfshare'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'it.paolo.telegrampdfshare'
+        minSdk 26
+        targetSdk 36
+        versionCode 14
+        versionName '0.14'
+    }
+
+    signingConfigs {
+        release {
+            def ksFile = System.getenv('ANDROID_KEYSTORE_FILE')
+            if (ksFile != null && !ksFile.trim().isEmpty()) {
+                storeFile file(ksFile)
+                storeType 'PKCS12'
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+            if (System.getenv('ANDROID_KEYSTORE_FILE') != null) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+}
+
+dependencies {
+    // TDLib viene scaricata da GitHub Releases dal workflow e usata come AAR locale.
+    implementation files('libs/core-release.aar')
+}

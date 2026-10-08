@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/navy"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="18dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="30dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Telegram PDF Share"
+            android:textColor="@color/white"
+            android:textSize="27sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textSelectedChannel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Nessun gruppo Telegram"
+            android:textColor="@color/cyan"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:id="@+id/textAutoSearchSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="0/7 PDF trovati"
+                android:textColor="@color/white"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textScheduleDiagnostics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Prossimo avvio: --\nUltima ricerca automatica: --"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/buttonStartDashboardSearch"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_button_primary"
+                android:text="Avvio"
+                android:textAllCaps="false"
+                android:textColor="@color/navy"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/buttonShareAvailable"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_button_primary"
+                android:enabled="false"
+                android:text="Nessun PDF pronto da inoltrare"
+                android:textAllCaps="false"
+                android:textColor="@color/navy"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/buttonOpenSearches"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_button_secondary"
+                android:text="Impostazioni"
+                android:textAllCaps="false"
+                android:textColor="@color/cyan"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="PDF trovati oggi"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/dashboardSlotsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/textStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center"
+            android:text="Pronta"
+            android:textColor="@color/green"
+            android:textSize="12sp" />
+
+        <!-- Controlli Telegram e compatibilità delle versioni precedenti.
+             Restano nel layout perché MainActivity mantiene la sessione TDLib e i dati esistenti. -->
+        <LinearLayout
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText android:id="@+id/editApiId" android:layout_width="1dp" android:layout_height="1dp" />
+            <EditText android:id="@+id/editApiHash" android:layout_width="1dp" android:layout_height="1dp" />
+            <EditText android:id="@+id/editPhone" android:layout_width="1dp" android:layout_height="1dp" />
+            <EditText android:id="@+id/editCode" android:layout_width="1dp" android:layout_height="1dp" />
+            <EditText android:id="@+id/editPassword" android:layout_width="1dp" android:layout_height="1dp" />
+            <EditText android:id="@+id/editFilter" android:layout_width="1dp" android:layout_height="1dp" />
+
+            <TextView android:id="@+id/textTelegramStatus" android:layout_width="1dp" android:layout_height="1dp" />
+            <TextView android:id="@+id/textPdfSearchInfo" android:layout_width="1dp" android:layout_height="1dp" />
+            <TextView android:id="@+id/textSelectedPdf" android:layout_width="1dp" android:layout_height="1dp" />
+            <LinearLayout android:id="@+id/pdfListContainer" android:layout_width="1dp" android:layout_height="1dp" />
+
+            <Button android:id="@+id/buttonOpenApiPage" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonConnectTelegram" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonConfirmCode" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonConfirmPassword" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonSelectChannel" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonRefreshPdfs" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonSave" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonClearHistory" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonPickPdf" android:layout_width="1dp" android:layout_height="1dp" />
+            <Button android:id="@+id/buttonShare" android:layout_width="1dp" android:layout_height="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
