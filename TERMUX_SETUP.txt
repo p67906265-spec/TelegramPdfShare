@@ -1,26 +1,14 @@
-TelegramPdfShare v0.13 - aggiornamento da Termux
+TelegramPdfShare v0.15 - aggiornamento da Termux
 
-cd ~/TelegramPdfShare
-
-unzip -o /sdcard/Download/TelegramPdfShare_v0_12_upload.zip -d ~/TelegramPdfShare
-
-git status
-
-git add -- \
-  app/build.gradle \
-  app/src/main/java/it/paolo/telegrampdfshare/MainActivity.java \
-  app/src/main/java/it/paolo/telegrampdfshare/SearchesActivity.java \
-  app/src/main/java/it/paolo/telegrampdfshare/PdfSearchService.java \
-  app/src/main/java/it/paolo/telegrampdfshare/SearchScheduler.java \
-  app/src/main/java/it/paolo/telegrampdfshare/SearchAlarmReceiver.java \
-  app/src/main/res/layout/activity_main.xml \
-  app/src/main/res/layout/activity_searches.xml \
-  .github/workflows/build-apk.yml \
-  README.md \
-  TERMUX_SETUP.txt
-
-git commit -m "TelegramPdfShare v0.13 - 7 ricerche PDF"
-
-git push
+cd ~
+rm -rf TelegramPdfShare TelegramPdfShare-tmp
+git clone https://github.com/p67906265-spec/TelegramPdfShare.git
+unzip -oq ~/storage/downloads/TelegramPdfShare_v2.zip -d TelegramPdfShare-tmp
+cp -rf TelegramPdfShare-tmp/TelegramPdfShare/. TelegramPdfShare/
+cd TelegramPdfShare
+git add -A
+git commit -m "TelegramPdfShare v0.15 - grafica compatta, slot Scarica, colori tasti"
+git push origin main
+rm -rf ~/TelegramPdfShare-tmp
 
 Non ricreare la chiave di firma e non modificare i GitHub Secrets.

@@ -248,7 +248,7 @@ public class PdfSearchService extends Service {
         searching = true;
         SearchCycle cycle = new SearchCycle();
         cycle.excludeFilter = prefs.getString("global_exclude_filter", "").trim().toLowerCase(Locale.ROOT);
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             cycle.filters[slot - 1] = prefs.getString("search_filter_" + slot, "").trim().toLowerCase(Locale.ROOT);
             if (cycle.filters[slot - 1].isEmpty()) {
                 cycle.found[slot - 1] = true;
@@ -294,7 +294,7 @@ public class PdfSearchService extends Service {
                     if (pdf == null || cycle.usedMessageIds.contains(pdf.messageId)) continue;
                     if (matchesExcluded(pdf, cycle.excludeFilter)) continue;
 
-                    for (int i = 0; i < 7; i++) {
+                    for (int i = 0; i < MainActivity.SLOT_COUNT; i++) {
                         if (cycle.found[i]) continue;
                         if (matchesFilter(pdf, cycle.filters[i])) {
                             saveFound(i + 1, pdf);
@@ -458,7 +458,7 @@ public class PdfSearchService extends Service {
     }
 
     private void downloadFoundFiles(Client client, int slot, Runnable done) {
-        if (slot > 7) {
+        if (slot > MainActivity.SLOT_COUNT) {
             done.run();
             return;
         }
@@ -485,7 +485,7 @@ public class PdfSearchService extends Service {
             return;
         }
 
-        updateNotification("PDF " + slot + " trovato • download automatico…");
+        updateNotification(MainActivity.slotLabel(slot) + " trovato • download automatico…");
         TdApi.DownloadFile request = new TdApi.DownloadFile(fileId, 32, 0, 0, true);
         final int currentSlot = slot;
         client.send(request, object -> {
@@ -546,7 +546,7 @@ public class PdfSearchService extends Service {
         String fileName = prefs.getString("search_result_name_" + slot, "documento.pdf");
         notifyPdfFound(slot, fileName);
         if (automaticCycle) {
-            sendControlMessage(nowTime() + " - PDF " + slot + " trovato e scaricato - " + fileName);
+            sendControlMessage(nowTime() + " - " + MainActivity.slotLabel(slot) + " trovato e scaricato - " + fileName);
         }
         prefs.edit().putBoolean("search_result_notified_" + slot, true).apply();
     }
@@ -652,7 +652,7 @@ public class PdfSearchService extends Service {
                 .putString("search_day_key", today)
                 .putBoolean("auto_search_active", false)
                 .putLong("next_search_at", 0L);
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             deleteCachedResult(slot);
             clearResult(editor, slot);
             editor.remove("search_handled_day_key_" + slot);
@@ -681,7 +681,7 @@ public class PdfSearchService extends Service {
 
     private int countConfiguredFilters() {
         int count = 0;
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (!prefs.getString("search_filter_" + slot, "").trim().isEmpty()) count++;
         }
         return count;
@@ -690,7 +690,7 @@ public class PdfSearchService extends Service {
     private int countCompletedToday() {
         int count = 0;
         String today = todayKey();
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (prefs.getString("search_filter_" + slot, "").trim().isEmpty()) continue;
             boolean foundToday = prefs.getBoolean("search_found_" + slot, false)
                     && today.equals(prefs.getString("search_result_day_key_" + slot, ""));
@@ -762,7 +762,7 @@ public class PdfSearchService extends Service {
 
     private int countFound() {
         int count = 0;
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (prefs.getString("search_filter_" + slot, "").trim().isEmpty()) continue;
             if (prefs.getBoolean("search_found_" + slot, false)) count++;
         }
@@ -772,7 +772,7 @@ public class PdfSearchService extends Service {
     private int countDownloaded() {
         int count = 0;
         String today = todayKey();
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (!prefs.getBoolean("search_found_" + slot, false)) continue;
             if (!today.equals(prefs.getString("search_result_day_key_" + slot, ""))) continue;
             String cachedPath = prefs.getString("search_result_cached_path_" + slot, "");
@@ -813,7 +813,7 @@ public class PdfSearchService extends Service {
                 CHANNEL_ID_NOTIFICATION,
                 "Ricerca automatica PDF",
                 NotificationManager.IMPORTANCE_LOW);
-        channel.setDescription("Stato della ricerca automatica dei 7 PDF Telegram");
+        channel.setDescription("Stato della ricerca automatica dei PDF Telegram");
         manager.createNotificationChannel(channel);
 
         NotificationChannel foundChannel = new NotificationChannel(
@@ -841,7 +841,7 @@ public class PdfSearchService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification notification = new Notification.Builder(this, CHANNEL_ID_FOUND)
                 .setSmallIcon(R.drawable.ic_app)
-                .setContentTitle("PDF " + slot + " trovato e scaricato • tocca per inoltrare")
+                .setContentTitle(MainActivity.slotLabel(slot) + " trovato e scaricato • tocca per " + (slot == MainActivity.DOWNLOAD_SLOT ? "scaricare" : "inoltrare"))
                 .setContentText(fileName)
                 .setContentIntent(pending)
                 .setAutoCancel(true)
@@ -873,8 +873,8 @@ public class PdfSearchService extends Service {
 
     private static final class SearchCycle {
         String excludeFilter = "";
-        final String[] filters = new String[7];
-        final boolean[] found = new boolean[7];
+        final String[] filters = new String[MainActivity.SLOT_COUNT];
+        final boolean[] found = new boolean[MainActivity.SLOT_COUNT];
         final Set<Long> usedMessageIds = new HashSet<>();
     }
 

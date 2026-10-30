@@ -10,103 +10,71 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingStart="18dp"
-        android:paddingTop="22dp"
+        android:paddingTop="18dp"
         android:paddingEnd="18dp"
-        android:paddingBottom="30dp">
+        android:paddingBottom="24dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Impostazioni"
             android:textColor="@color/white"
-            android:textSize="27sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="14dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Gruppo Telegram"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp">
 
             <TextView
                 android:id="@+id/textSearchChannel"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_weight="1"
+                android:singleLine="true"
                 android:text="Nessun gruppo selezionato"
                 android:textColor="@color/cyan"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <Button
                 android:id="@+id/buttonSelectTelegramGroup"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
                 android:background="@drawable/bg_button_secondary"
-                android:text="Cambia gruppo Telegram"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:stateListAnimator="@null"
+                android:text="Cambia"
                 android:textAllCaps="false"
                 android:textColor="@color/cyan"
+                android:textSize="13sp"
                 android:textStyle="bold" />
-
         </LinearLayout>
 
+        <CheckBox
+            android:id="@+id/checkControlMessages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Invia messaggi di controllo"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="14dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Messaggi di controllo Telegram"
-                android:textColor="@color/cyan"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Destinazione: Messaggi salvati"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="I messaggi di verifica vengono inviati direttamente alla tua chat Messaggi salvati di Telegram."
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-
-            <CheckBox
-                android:id="@+id/checkControlMessages"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Invia messaggi di controllo"
-                android:textColor="@color/white"
-                android:textSize="14sp" />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="6dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
             android:padding="14dp">
@@ -116,159 +84,212 @@
                 android:layout_height="wrap_content"
                 android:text="Ricerca automatica"
                 android:textColor="@color/cyan"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Parole da NON trovare • filtro unico"
+                android:layout_marginTop="10dp"
+                android:text="Parole da non trovare"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
             <EditText
                 android:id="@+id/editGlobalExclude"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input"
-                android:hint="es. napoli, roma, milano, torino"
+                android:layout_height="38dp"
+                android:layout_marginTop="4dp"
+                android:hint="napoli, roma, milano"
                 android:inputType="text"
-                android:maxLines="3"
-                android:padding="12dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/text_secondary"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="Puoi separare le parole con spazio, virgola, punto e virgola o andare a capo."
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Minuti tra una ricerca e l'altra"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-
-            <EditText
-                android:id="@+id/editRetryMinutes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input"
-                android:hint="15"
-                android:inputType="number"
-                android:padding="12dp"
                 android:singleLine="true"
-                android:textColor="@color/white"
-                android:textColorHint="@color/text_secondary"
-                android:textSize="14sp" />
+                android:background="@drawable/bg_input"
+                    android:minHeight="0dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="14sp"/>
 
-            <TextView
-                android:id="@+id/textStartTime"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Ora di inizio: non impostata"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/buttonPickStartTime"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginTop="7dp"
-                android:background="@drawable/bg_button_secondary"
-                android:text="Imposta ora di inizio"
-                android:textAllCaps="false"
-                android:textColor="@color/cyan"
-                android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/textEndTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Ora di fine: non impostata"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ogni (min)"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
 
-            <Button
-                android:id="@+id/buttonPickEndTime"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginTop="7dp"
-                android:background="@drawable/bg_button_secondary"
-                android:text="Imposta ora di fine"
-                android:textAllCaps="false"
-                android:textColor="@color/cyan"
-                android:textStyle="bold" />
+                    <EditText
+                        android:id="@+id/editRetryMinutes"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="4dp"
+                        android:hint="15"
+                        android:inputType="number"
+                        android:singleLine="true"
+                        android:background="@drawable/bg_input"
+                    android:minHeight="0dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="14sp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Inizio"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/buttonPickStartTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_button_secondary"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:stateListAnimator="@null"
+                        android:text="--:--"
+                        android:textAllCaps="false"
+                        android:textColor="@color/cyan"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fine"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/buttonPickEndTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_button_secondary"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:stateListAnimator="@null"
+                        android:text="--:--"
+                        android:textAllCaps="false"
+                        android:textColor="@color/cyan"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
 
             <Button
                 android:id="@+id/buttonAutoSearch"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="8dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_button_primary"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:stateListAnimator="@null"
                 android:text="Attiva avvio programmato"
                 android:textAllCaps="false"
                 android:textColor="@color/navy"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:text="Filtri dei 7 PDF"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="14dp"
+            android:gravity="bottom"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/textSearchDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:text="Data automatica"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Filtri dei PDF"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textSearchDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/searchPanelsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:orientation="vertical" />
 
         <Button
             android:id="@+id/buttonSaveSettings"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="15dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="14dp"
             android:background="@drawable/bg_button_primary"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:stateListAnimator="@null"
             android:text="Salva impostazioni"
             android:textAllCaps="false"
             android:textColor="@color/navy"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/buttonBackMain"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="40dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_button_secondary"
-            android:text="Torna alla schermata principale"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:stateListAnimator="@null"
+            android:text="Indietro"
             android:textAllCaps="false"
             android:textColor="@color/cyan"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <!-- Controlli mantenuti invisibili per la logica delle versioni precedenti. -->

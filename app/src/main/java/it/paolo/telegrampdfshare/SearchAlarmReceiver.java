@@ -50,7 +50,7 @@ public class SearchAlarmReceiver extends BroadcastReceiver {
         int found = 0;
         int configured = 0;
         String today = new SimpleDateFormat("yyyyMMdd", Locale.ITALY).format(new Date());
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (prefs.getString("search_filter_" + slot, "").trim().isEmpty()) continue;
             configured++;
             boolean foundToday = prefs.getBoolean("search_found_" + slot, false)

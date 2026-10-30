@@ -50,10 +50,10 @@ public class SearchesActivity extends Activity {
     private static final String PDF_PROVIDER_AUTHORITY = "it.paolo.telegrampdfshare.pdfprovider";
     private static final int REQUEST_NOTIFICATIONS = 2201;
 
-    private final EditText[] filterEdits = new EditText[7];
-    private final TextView[] statusTexts = new TextView[7];
-    private final TextView[] resultTexts = new TextView[7];
-    private final Button[] shareButtons = new Button[7];
+    private final EditText[] filterEdits = new EditText[MainActivity.SLOT_COUNT];
+    private final TextView[] statusTexts = new TextView[MainActivity.SLOT_COUNT];
+    private final TextView[] resultTexts = new TextView[MainActivity.SLOT_COUNT];
+    private final Button[] shareButtons = new Button[MainActivity.SLOT_COUNT];
 
     private SharedPreferences prefs;
     private TextView textGlobalSearchStatus;
@@ -98,8 +98,8 @@ public class SearchesActivity extends Activity {
         textGlobalSearchStatus = findViewById(R.id.textGlobalSearchStatus);
         textNextSearch = findViewById(R.id.textNextSearch);
         textSearchDate = findViewById(R.id.textSearchDate);
-        textStartTime = findViewById(R.id.textStartTime);
-        textEndTime = findViewById(R.id.textEndTime);
+        textStartTime = findViewById(R.id.buttonPickStartTime);
+        textEndTime = findViewById(R.id.buttonPickEndTime);
         editGlobalExclude = findViewById(R.id.editGlobalExclude);
         editRetryMinutes = findViewById(R.id.editRetryMinutes);
         textSearchChannel = findViewById(R.id.textSearchChannel);
@@ -118,10 +118,21 @@ public class SearchesActivity extends Activity {
         String channelTitle = prefs.getString("channel_title", "").trim();
         textSearchChannel.setText(channelTitle.isEmpty() ? "Nessun canale selezionato" : channelTitle);
         checkControlMessages.setChecked(prefs.getBoolean("control_messages_enabled", false));
-        textSearchDate.setText("Data automatica: " + todayLabel());
+        textSearchDate.setText(todayLabel());
 
-        for (int i = 0; i < 7; i++) {
-            container.addView(createSearchPanel(i));
+        LinearLayout panelRow = null;
+        for (int i = 0; i < MainActivity.SLOT_COUNT; i++) {
+            if (i % 2 == 0) {
+                panelRow = new LinearLayout(this);
+                panelRow.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
+                rowParams.setMargins(0, dp(8), 0, 0);
+                panelRow.setLayoutParams(rowParams);
+                container.addView(panelRow);
+            }
+            panelRow.addView(createSearchPanel(i));
         }
         restoreConfig();
         refreshAll();
@@ -154,7 +165,7 @@ public class SearchesActivity extends Activity {
         }
         handler.post(ticker);
         if (textSearchDate != null) {
-            textSearchDate.setText("Data automatica: " + todayLabel());
+            textSearchDate.setText(todayLabel());
         }
         if (textSearchChannel != null) {
             String channelTitle = prefs.getString("channel_title", "").trim();
@@ -177,78 +188,68 @@ public class SearchesActivity extends Activity {
 
     private View createSearchPanel(int index) {
         int slot = index + 1;
+        boolean left = index % 2 == 0;
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(14), dp(13), dp(14), dp(13));
-        card.setBackgroundResource(R.drawable.bg_card);
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        cardParams.setMargins(0, dp(12), 0, 0);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        cardParams.setMargins(left ? 0 : dp(4), 0, left ? dp(4) : 0, 0);
         card.setLayoutParams(cardParams);
 
-        TextView title = new TextView(this);
-        title.setText("RICERCA " + slot);
-        title.setTextColor(getColor(R.color.cyan));
-        title.setTextSize(16f);
-        title.setTypeface(null, Typeface.BOLD);
-        card.addView(title);
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(android.view.Gravity.CENTER_VERTICAL);
 
-        TextView automaticDate = new TextView(this);
-        automaticDate.setText("Data: " + todayLabel() + " • automatica");
-        automaticDate.setTextColor(getColor(R.color.text_secondary));
-        automaticDate.setTextSize(12f);
-        automaticDate.setPadding(0, dp(4), 0, 0);
-        automaticDate.setVisibility(View.GONE);
-        card.addView(automaticDate);
+        TextView title = new TextView(this);
+        title.setText(slot == MainActivity.DOWNLOAD_SLOT ? "Scarica" : "Ricerca " + slot);
+        title.setTextColor(getColor(R.color.cyan));
+        title.setTextSize(12f);
+        title.setTypeface(null, Typeface.BOLD);
+        header.addView(title, new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        final View colorDot = new View(this);
+        colorDot.setBackground(SlotColors.dot(SlotColors.get(prefs, slot), dp(18)));
+        LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(dp(18), dp(18));
+        dotParams.setMargins(dp(6), 0, dp(2), 0);
+        colorDot.setLayoutParams(dotParams);
+        colorDot.setOnClickListener(v -> SlotColors.showPicker(this, prefs, slot,
+                "Colore di " + MainActivity.slotLabel(slot),
+                () -> colorDot.setBackground(SlotColors.dot(SlotColors.get(prefs, slot), dp(18)))));
+        header.addView(colorDot);
+        card.addView(header);
 
         EditText filter = new EditText(this);
-        filter.setHint("Parole per identificare questo PDF");
+        filter.setHint(slot == MainActivity.DOWNLOAD_SLOT ? "Parole del PDF da scaricare" : "Parole del PDF");
         filter.setSingleLine(true);
         filter.setTextColor(getColor(R.color.white));
         filter.setHintTextColor(getColor(R.color.text_secondary));
-        filter.setTextSize(14f);
+        filter.setTextSize(13f);
+        filter.setMinHeight(0);
         filter.setBackgroundResource(R.drawable.bg_input);
+        filter.setPadding(dp(12), 0, dp(12), 0);
         LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        filterParams.setMargins(0, dp(9), 0, 0);
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(38));
+        filterParams.setMargins(0, dp(4), 0, 0);
         filter.setLayoutParams(filterParams);
         card.addView(filter);
         filterEdits[index] = filter;
 
         TextView state = new TextView(this);
-        state.setText("DA TROVARE");
         state.setTextColor(getColor(R.color.warning));
-        state.setTextSize(12f);
-        state.setTypeface(null, Typeface.BOLD);
-        state.setPadding(0, dp(9), 0, 0);
         state.setVisibility(View.GONE);
         card.addView(state);
         statusTexts[index] = state;
 
         TextView result = new TextView(this);
-        result.setText("Nessun PDF trovato");
         result.setTextColor(getColor(R.color.text_secondary));
-        result.setTextSize(13f);
-        result.setPadding(0, dp(4), 0, 0);
         result.setVisibility(View.GONE);
         card.addView(result);
         resultTexts[index] = result;
 
         Button share = new Button(this);
-        share.setText("Invia questo PDF a WhatsApp");
-        share.setAllCaps(false);
-        share.setTextColor(getColor(R.color.navy));
-        share.setTypeface(null, Typeface.BOLD);
-        share.setBackgroundResource(R.drawable.bg_button_primary);
         share.setEnabled(false);
-        share.setAlpha(0.45f);
         share.setVisibility(View.GONE);
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(46));
-        buttonParams.setMargins(0, dp(9), 0, 0);
-        share.setLayoutParams(buttonParams);
         final int slotIndex = index;
         share.setOnClickListener(v -> downloadAndShare(slotIndex, share));
         card.addView(share);
@@ -258,7 +259,7 @@ public class SearchesActivity extends Activity {
     }
 
     private void restoreConfig() {
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < MainActivity.SLOT_COUNT; i++) {
             int slot = i + 1;
             filterEdits[i].setText(prefs.getString("search_filter_" + slot, ""));
         }
@@ -290,7 +291,7 @@ public class SearchesActivity extends Activity {
         editor.remove("whatsapp_group_name");
         if (checkControlMessages != null) editor.putBoolean("control_messages_enabled", checkControlMessages.isChecked());
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < MainActivity.SLOT_COUNT; i++) {
             int slot = i + 1;
             String filter = filterEdits[i].getText().toString().trim();
             String oldFilter = prefs.getString("search_filter_" + slot, "").trim();
@@ -300,7 +301,7 @@ public class SearchesActivity extends Activity {
             }
         }
         if (clearAll) {
-            for (int slot = 1; slot <= 7; slot++) {
+            for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
                 clearResult(editor, slot);
             }
         }
@@ -372,7 +373,7 @@ public class SearchesActivity extends Activity {
                             .putBoolean("auto_search_active", false)
                             .putLong("next_search_at", 0L)
                             .putString("search_day_key", todayKey());
-                    for (int slot = 1; slot <= 7; slot++) clearResult(editor, slot);
+                    for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) clearResult(editor, slot);
                     editor.apply();
                     textSearchChannel.setText(title);
                     if (prefs.getBoolean("daily_search_enabled", false)) SearchScheduler.scheduleNext(this);
@@ -491,9 +492,9 @@ public class SearchesActivity extends Activity {
         int hour = prefs.getInt("search_start_hour", -1);
         int minute = prefs.getInt("search_start_minute", -1);
         if (hour < 0 || minute < 0) {
-            textStartTime.setText("Ora di inizio: non impostata");
+            textStartTime.setText("--:--");
         } else {
-            textStartTime.setText(String.format(Locale.ITALY, "Ora di inizio: %02d:%02d", hour, minute));
+            textStartTime.setText(String.format(Locale.ITALY, "%02d:%02d", hour, minute));
         }
     }
 
@@ -522,9 +523,9 @@ public class SearchesActivity extends Activity {
         int hour = prefs.getInt("search_end_hour", -1);
         int minute = prefs.getInt("search_end_minute", -1);
         if (hour < 0 || minute < 0) {
-            textEndTime.setText("Ora di fine: non impostata");
+            textEndTime.setText("--:--");
         } else {
-            textEndTime.setText(String.format(Locale.ITALY, "Ora di fine: %02d:%02d", hour, minute));
+            textEndTime.setText(String.format(Locale.ITALY, "%02d:%02d", hour, minute));
         }
     }
 
@@ -556,7 +557,7 @@ public class SearchesActivity extends Activity {
     private void confirmNewSearch() {
         new AlertDialog.Builder(this)
                 .setTitle("Nuova ricerca di oggi")
-                .setMessage("Azzero i 7 PDF trovati per " + todayLabel() + " e ricomincio da zero?")
+                .setMessage("Azzero i PDF trovati per " + todayLabel() + " e ricomincio da zero?")
                 .setNegativeButton("Annulla", null)
                 .setPositiveButton("Azzera", (dialog, which) -> {
                     stopService(new Intent(this, PdfSearchService.class));
@@ -564,7 +565,7 @@ public class SearchesActivity extends Activity {
                             .putBoolean("auto_search_active", false)
                             .putLong("next_search_at", 0L)
                             .putString("search_day_key", todayKey());
-                    for (int slot = 1; slot <= 7; slot++) {
+                    for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
                         clearResult(editor, slot);
                     }
                     editor.apply();
@@ -599,7 +600,7 @@ public class SearchesActivity extends Activity {
                 .putString("search_day_key", today)
                 .putBoolean("auto_search_active", false)
                 .putLong("next_search_at", 0L);
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             deleteCachedResult(slot);
             clearResult(editor, slot);
             editor.remove("search_handled_day_key_" + slot);
@@ -614,7 +615,7 @@ public class SearchesActivity extends Activity {
         int foundCount = 0;
         int configuredCount = 0;
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < MainActivity.SLOT_COUNT; i++) {
             int slot = i + 1;
             String filter = prefs.getString("search_filter_" + slot, "").trim();
             boolean sameDay = today.equals(prefs.getString("search_result_day_key_" + slot, ""));
@@ -665,7 +666,7 @@ public class SearchesActivity extends Activity {
         String today = todayKey();
         int configured = 0;
         int found = 0;
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (!prefs.getString("search_filter_" + slot, "").trim().isEmpty()) {
                 configured++;
                 boolean sameDay = today.equals(prefs.getString("search_result_day_key_" + slot, ""));
@@ -676,7 +677,7 @@ public class SearchesActivity extends Activity {
         }
         textGlobalSearchStatus.setText(found + "/" + configured + " PDF di oggi trovati");
         if (textSearchDate != null) {
-            textSearchDate.setText("Data automatica: " + todayLabel());
+            textSearchDate.setText(todayLabel());
         }
 
         boolean active = prefs.getBoolean("auto_search_active", false);
@@ -841,7 +842,7 @@ public class SearchesActivity extends Activity {
 
     private ArrayList<Integer> configuredSlots() {
         ArrayList<Integer> slots = new ArrayList<>();
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (!prefs.getString("search_filter_" + slot, "").trim().isEmpty()) slots.add(slot);
         }
         return slots;

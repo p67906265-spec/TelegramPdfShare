@@ -5,18 +5,26 @@ import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Environment;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,6 +39,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +57,14 @@ public class MainActivity extends Activity {
 
     private static final int REQUEST_OPEN_PDF = 1001;
     private static final String PREFS = "telegram_pdf_share_prefs";
+    /** Numero totale di slot: 7 PDF da inoltrare + 1 slot "Scarica". */
+    static final int SLOT_COUNT = 8;
+    /** Lo slot che salva il PDF in Download invece di inoltrarlo a WhatsApp. */
+    static final int DOWNLOAD_SLOT = 8;
+
+    static String slotLabel(int slot) {
+        return slot == DOWNLOAD_SLOT ? "Scarica" : "PDF " + slot;
+    }
     private static final String PDF_PROVIDER_AUTHORITY = "it.paolo.telegrampdfshare.pdfprovider";
 
     private static final String KEY_API_ID = "telegram_api_id";
@@ -83,9 +101,8 @@ public class MainActivity extends Activity {
     private Button buttonStartDashboardSearch;
     private Button buttonShareAvailable;
     private LinearLayout dashboardSlotsContainer;
-    private final TextView[] dashboardStateTexts = new TextView[7];
-    private final TextView[] dashboardResultTexts = new TextView[7];
-    private final Button[] dashboardShareButtons = new Button[7];
+    private final Button[] dashboardTiles = new Button[SLOT_COUNT];
+    private final boolean[] tileReady = new boolean[SLOT_COUNT];
     private boolean dashboardReceiverRegistered = false;
 
     private SharedPreferences prefs;
@@ -210,60 +227,83 @@ public class MainActivity extends Activity {
         if (dashboardSlotsContainer == null || dashboardSlotsContainer.getChildCount() > 0) {
             return;
         }
-        for (int index = 0; index < 7; index++) {
+        LinearLayout row = null;
+        for (int index = 0; index < SLOT_COUNT; index++) {
             final int slot = index + 1;
-            LinearLayout card = new LinearLayout(this);
-            card.setOrientation(LinearLayout.VERTICAL);
-            card.setPadding(dp(14), dp(12), dp(14), dp(12));
-            card.setBackgroundResource(R.drawable.bg_card);
-            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            cardParams.setMargins(0, dp(9), 0, 0);
-            card.setLayoutParams(cardParams);
+            boolean left = index % 2 == 0;
+            if (left) {
+                row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
+                rowParams.setMargins(0, dp(8), 0, 0);
+                row.setLayoutParams(rowParams);
+                dashboardSlotsContainer.addView(row);
+            }
 
-            TextView title = new TextView(this);
-            title.setText("PDF " + slot);
-            title.setTextColor(getResources().getColor(R.color.cyan, getTheme()));
-            title.setTextSize(15f);
-            title.setTypeface(null, Typeface.BOLD);
-            card.addView(title);
-
-            TextView state = new TextView(this);
-            state.setText("DA TROVARE");
-            state.setTextColor(getResources().getColor(R.color.warning, getTheme()));
-            state.setTextSize(12f);
-            state.setTypeface(null, Typeface.BOLD);
-            state.setPadding(0, dp(4), 0, 0);
-            card.addView(state);
-            dashboardStateTexts[index] = state;
-
-            TextView result = new TextView(this);
-            result.setText("Nessun PDF trovato oggi");
-            result.setTextColor(getResources().getColor(R.color.text_secondary, getTheme()));
-            result.setTextSize(13f);
-            result.setPadding(0, dp(3), 0, 0);
-            card.addView(result);
-            dashboardResultTexts[index] = result;
-
-            Button share = new Button(this);
-            share.setText("Inoltra");
-            share.setAllCaps(false);
-            share.setTextColor(getResources().getColor(R.color.navy, getTheme()));
-            share.setTypeface(null, Typeface.BOLD);
-            share.setBackgroundResource(R.drawable.bg_button_primary);
-            share.setEnabled(false);
-            share.setAlpha(0.45f);
-            LinearLayout.LayoutParams shareParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, dp(44));
-            shareParams.setMargins(0, dp(8), 0, 0);
-            share.setLayoutParams(shareParams);
-            share.setOnClickListener(v -> shareDashboardSlot(slot, share));
-            card.addView(share);
-            dashboardShareButtons[index] = share;
-
-            dashboardSlotsContainer.addView(card);
+            Button tile = new Button(this);
+            tile.setAllCaps(false);
+            tile.setTextSize(14f);
+            tile.setTypeface(null, Typeface.BOLD);
+            tile.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+            tile.setPadding(dp(14), 0, dp(14), 0);
+            tile.setMinHeight(0);
+            tile.setMinimumHeight(0);
+            tile.setStateListAnimator(null);
+            LinearLayout.LayoutParams tileParams = new LinearLayout.LayoutParams(0, dp(52), 1f);
+            tileParams.setMargins(left ? 0 : dp(4), 0, left ? dp(4) : 0, 0);
+            tile.setLayoutParams(tileParams);
+            tile.setOnClickListener(v -> onTileClicked(slot));
+            tile.setOnLongClickListener(v -> {
+                SlotColors.showPicker(this, prefs, slot, "Colore di " + slotLabel(slot), this::renderDashboard);
+                return true;
+            });
+            row.addView(tile);
+            dashboardTiles[index] = tile;
+            styleTile(tile, slotLabel(slot), "", 0, R.color.navy_card, R.color.divider, R.color.text_secondary, 1f);
         }
+    }
+
+    private void onTileClicked(int slot) {
+        if (!tileReady[slot - 1]) {
+            Toast.makeText(this, "Nessun PDF disponibile", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (slot == DOWNLOAD_SLOT) {
+            saveSlotToDownloads(slot);
+        } else {
+            shareDashboardSlot(slot, dashboardTiles[slot - 1]);
+        }
+    }
+
+    private int color(int resId) {
+        return getResources().getColor(resId, getTheme());
+    }
+
+    private void styleTile(Button tile, String label, String suffix, int suffixColor,
+                           int fillRes, int strokeRes, int textRes, float alpha) {
+        styleTileRaw(tile, label, suffix, suffixColor, color(fillRes), strokeRes == 0 ? 0 : color(strokeRes),
+                color(textRes), alpha);
+    }
+
+    private void styleTileRaw(Button tile, String label, String suffix, int suffixColor,
+                              int fill, int stroke, int textColor, float alpha) {
+        SpannableStringBuilder text = new SpannableStringBuilder(label);
+        text.setSpan(new ForegroundColorSpan(textColor), 0, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (suffix != null && !suffix.isEmpty()) {
+            int from = text.length();
+            text.append(suffix);
+            text.setSpan(new ForegroundColorSpan(suffixColor == 0 ? textColor : suffixColor),
+                    from, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        tile.setText(text);
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(fill);
+        background.setCornerRadius(dp(12));
+        if (stroke != 0) background.setStroke(dp(1), stroke);
+        tile.setBackground(background);
+        tile.setAlpha(alpha);
     }
 
     private void renderDashboard() {
@@ -277,83 +317,118 @@ public class MainActivity extends Activity {
         int configured = 0;
         String today = new SimpleDateFormat("yyyyMMdd", Locale.ITALY).format(new Date());
 
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= SLOT_COUNT; slot++) {
             int index = slot - 1;
-            if (dashboardStateTexts[index] == null) continue;
+            Button tile = dashboardTiles[index];
+            if (tile == null) continue;
 
             String filter = prefs.getString("search_filter_" + slot, "").trim();
             if (!filter.isEmpty()) configured++;
             boolean handledToday = !filter.isEmpty() && today.equals(prefs.getString("search_handled_day_key_" + slot, ""));
             boolean isFound = !filter.isEmpty() && prefs.getBoolean("search_found_" + slot, false)
                     && today.equals(prefs.getString("search_result_day_key_" + slot, ""));
+            boolean download = slot == DOWNLOAD_SLOT;
+            boolean custom = SlotColors.isCustom(prefs, slot);
+            int base = SlotColors.get(prefs, slot);
+            String label = slotLabel(slot);
+            int green = color(R.color.green);
+
             if (handledToday) {
                 handled++;
-                dashboardStateTexts[index].setText("✓ INOLTRATO OGGI");
-                dashboardStateTexts[index].setTextColor(getResources().getColor(R.color.green, getTheme()));
-                dashboardResultTexts[index].setText("Casella libera • non verrà cercato di nuovo oggi");
-                dashboardShareButtons[index].setEnabled(false);
-                dashboardShareButtons[index].setAlpha(0.45f);
-                dashboardShareButtons[index].setText("Inoltrato");
+                tileReady[index] = false;
+                styleTileRaw(tile, label, "  ✓", green, color(R.color.navy_card),
+                        custom ? base : color(R.color.divider),
+                        custom ? base : color(R.color.text_secondary), 1f);
             } else if (isFound) {
                 found++;
-                String name = prefs.getString("search_result_name_" + slot, "documento.pdf");
-                long size = prefs.getLong("search_result_size_" + slot, 0L);
-                int timestamp = prefs.getInt("search_result_date_" + slot, 0);
-                String meta = timestamp > 0 ? dateFormat.format(new Date(timestamp * 1000L)) : "oggi";
-                if (size > 0) meta += " • " + formatSize(size);
                 String cachedPath = prefs.getString("search_result_cached_path_" + slot, "");
                 boolean downloaded = !cachedPath.isEmpty() && new File(cachedPath).exists();
-                if (downloaded) ready++;
-                dashboardStateTexts[index].setText(downloaded ? "✓ TROVATO • SCARICATO" : "✓ TROVATO • DOWNLOAD…");
-                dashboardStateTexts[index].setTextColor(getResources().getColor(R.color.green, getTheme()));
-                dashboardResultTexts[index].setText(name + "\n" + meta);
-                dashboardShareButtons[index].setEnabled(downloaded);
-                dashboardShareButtons[index].setAlpha(downloaded ? 1f : 0.45f);
-                dashboardShareButtons[index].setText(downloaded ? "Inoltra" : "Download in corso…");
+                if (downloaded && !download) ready++;
+                tileReady[index] = downloaded;
+                if (downloaded) {
+                    styleTileRaw(tile, label, download ? "  ↓" : "  ↗", 0, base, 0, color(R.color.navy), 1f);
+                } else {
+                    styleTileRaw(tile, label, "  …", 0, color(R.color.navy_card), base, color(R.color.white), 1f);
+                }
             } else {
-                dashboardStateTexts[index].setText(filter.isEmpty() ? "NON ATTIVO" : "DA TROVARE");
-                dashboardStateTexts[index].setTextColor(getResources().getColor(R.color.warning, getTheme()));
-                dashboardResultTexts[index].setText(filter.isEmpty()
-                        ? "Campo non configurato • viene ignorato"
-                        : "In attesa del PDF di oggi");
-                dashboardShareButtons[index].setEnabled(false);
-                dashboardShareButtons[index].setAlpha(0.45f);
-                dashboardShareButtons[index].setText("Inoltra");
+                tileReady[index] = false;
+                styleTileRaw(tile, label, "", 0, color(R.color.navy_card),
+                        custom ? base : color(R.color.divider),
+                        custom ? base : color(R.color.text_secondary), filter.isEmpty() ? 0.5f : 1f);
             }
         }
 
-        boolean active = prefs.getBoolean("auto_search_active", false);
-        int retryMinutes = prefs.getInt("retry_minutes", 15);
-        if (retryMinutes < 1) retryMinutes = 15;
-        String channel = prefs.getString(KEY_CHANNEL_TITLE, "").trim();
-        int completed = found + handled;
-        String status = found + "/" + configured + " PDF disponibili" + (handled > 0 ? " • " + handled + " inoltrati" : "");
-        if (found > ready) status += " • " + ready + " scaricati";
+        String status = found + "/" + configured + " disponibili" + (handled > 0 ? " · " + handled + " inoltrati" : "");
         if (configured == 0) status = "Nessun PDF configurato";
-        else if (active && completed < configured) status += " • controllo ogni " + retryMinutes + " min";
-        else if (completed >= configured) status += " • completato per oggi";
         textAutoSearchSummary.setText(status);
         if (buttonShareAvailable != null) {
-            buttonShareAvailable.setEnabled(ready > 0);
             buttonShareAvailable.setAlpha(ready > 0 ? 1f : 0.45f);
-            buttonShareAvailable.setText(ready > 0
-                    ? "Inoltra PDF disponibili (" + ready + ")"
-                    : "Nessun PDF pronto da inoltrare");
+            buttonShareAvailable.setText(ready > 0 ? "Inoltra (" + ready + ")" : "Inoltra");
         }
 
+        String channel = prefs.getString(KEY_CHANNEL_TITLE, "").trim();
         if (textSelectedChannel != null) {
             textSelectedChannel.setText(channel.isEmpty() ? "Nessun gruppo Telegram" : channel);
         }
         if (textScheduleDiagnostics != null) {
-            long scheduled = prefs.getLong("scheduled_start_at", 0L);
             long last = prefs.getLong("last_auto_search_at", 0L);
-            String nextLabel = scheduled > 0L ? dateFormat.format(new Date(scheduled)) : "non programmato";
-            String lastLabel = last > 0L ? dateFormat.format(new Date(last)) : "mai";
-            String reason = prefs.getString("last_auto_start_reason", "").trim();
-            textScheduleDiagnostics.setText("Prossimo avvio: " + nextLabel
-                    + "\nUltima ricerca automatica: " + lastLabel
-                    + (reason.isEmpty() ? "" : " • " + reason));
+            String lastLabel = "mai";
+            if (last > 0L) {
+                boolean sameDay = new SimpleDateFormat("yyyyMMdd", Locale.ITALY).format(new Date(last)).equals(today);
+                lastLabel = new SimpleDateFormat(sameDay ? "HH:mm" : "dd/MM HH:mm", Locale.ITALY).format(new Date(last));
+            }
+            textScheduleDiagnostics.setText("Ultima ricerca " + lastLabel);
         }
+    }
+
+    private void saveSlotToDownloads(int slot) {
+        String cachedPath = prefs.getString("search_result_cached_path_" + slot, "");
+        String fileName = sanitizeFileName(prefs.getString("search_result_name_" + slot, "documento.pdf"));
+        if (cachedPath.isEmpty() || !new File(cachedPath).exists()) {
+            Toast.makeText(this, "Il PDF non è ancora pronto", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            String where = copyToDownloads(new File(cachedPath), fileName);
+            Toast.makeText(this, "Salvato in " + where + ": " + fileName, Toast.LENGTH_LONG).show();
+            textStatus.setText("Scaricato: " + fileName);
+            markSlotHandledAfterShare(slot, cachedPath);
+        } catch (Exception e) {
+            Toast.makeText(this, "Salvataggio non riuscito: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String copyToDownloads(File source, String fileName) throws IOException {
+        if (Build.VERSION.SDK_INT >= 29) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
+            values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+            Uri target = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+            if (target == null) throw new IOException("cartella Download non disponibile");
+            try (InputStream in = new FileInputStream(source);
+                 OutputStream out = getContentResolver().openOutputStream(target)) {
+                if (out == null) throw new IOException("scrittura non riuscita");
+                copyStream(in, out);
+            }
+            return "Download";
+        }
+        File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (dir == null) throw new IOException("memoria non disponibile");
+        if (!dir.exists() && !dir.mkdirs()) throw new IOException("cartella non creata");
+        File target = new File(dir, fileName);
+        try (InputStream in = new FileInputStream(source);
+             OutputStream out = new FileOutputStream(target)) {
+            copyStream(in, out);
+        }
+        return "Android/data/" + getPackageName() + "/files/Download";
+    }
+
+    private void copyStream(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[16384];
+        int read;
+        while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+        out.flush();
     }
 
     private void startDashboardSearch() {
@@ -365,7 +440,7 @@ public class MainActivity extends Activity {
             return;
         }
         int configured = 0;
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             if (!prefs.getString("search_filter_" + slot, "").trim().isEmpty()) configured++;
         }
         if (configured == 0) {
@@ -431,7 +506,7 @@ public class MainActivity extends Activity {
         ArrayList<Uri> uris = new ArrayList<>();
         ArrayList<Integer> sharedSlots = new ArrayList<>();
         ArrayList<String> sharedPaths = new ArrayList<>();
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot < DOWNLOAD_SLOT; slot++) {
             boolean found = prefs.getBoolean("search_found_" + slot, false)
                     && today.equals(prefs.getString("search_result_day_key_" + slot, ""));
             if (!found) continue;
@@ -526,7 +601,7 @@ public class MainActivity extends Activity {
                 .putString("search_day_key", today)
                 .putBoolean("auto_search_active", false)
                 .putLong("next_search_at", 0L);
-        for (int slot = 1; slot <= 7; slot++) {
+        for (int slot = 1; slot <= MainActivity.SLOT_COUNT; slot++) {
             String cachedPath = prefs.getString("search_result_cached_path_" + slot, "");
             if (!cachedPath.isEmpty()) {
                 try { new File(cachedPath).delete(); } catch (Exception ignored) {}
@@ -1002,7 +1077,7 @@ public class MainActivity extends Activity {
 
     private void clearSearchResults() {
         SharedPreferences.Editor editor = prefs.edit().putBoolean("auto_search_active", false);
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i <= MainActivity.SLOT_COUNT; i++) {
             editor.remove("search_found_" + i)
                     .remove("search_result_name_" + i)
                     .remove("search_result_message_id_" + i)

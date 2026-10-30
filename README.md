@@ -1,4 +1,15 @@
-# TelegramPdfShare v0.13
+# TelegramPdfShare v0.15
+
+## Novità v0.15
+- Grafica rifatta: schermata principale e Impostazioni più compatte, pulsanti più piccoli, testi superflui rimossi.
+- Avvio, Inoltra e Impostazioni sono su una sola riga.
+- I PDF sono in due colonne. Tasto azzurro = PDF pronto: toccalo per inoltrarlo. Tasto scuro con spunta = già inoltrato.
+- Nuovo slot **Scarica** (ottavo): il PDF trovato viene salvato nella cartella Download del telefono invece di essere inoltrato a WhatsApp. Non è incluso nel tasto Inoltra.
+- Colore personalizzabile per ogni tasto PDF: tieni premuto il tasto nella schermata principale, oppure tocca il pallino accanto al filtro nelle Impostazioni.
+- Impostazioni: Minuti, Inizio e Fine sulla stessa riga; filtri PDF in due colonne.
+- versionCode 15 / versionName 0.15, applicationId invariato.
+
+## v0.13
 
 App Android locale per cercare automaticamente 7 PDF in un canale Telegram e inoltrarli a WhatsApp.
 
