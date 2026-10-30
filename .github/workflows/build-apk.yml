@@ -79,16 +79,23 @@ jobs:
           printf '%s' "$KEYSTORE_B64" | base64 --decode > app/signing/release.p12
           test -s app/signing/release.p12
 
+      # Il vecchio repository GitHub di TDLib (AkashPriyadarshii/tdlib-android) non esiste piu'.
+      # La stessa libreria e' pubblicata su Maven Central: scarico da li' lo stesso modulo "core".
       - name: Download TDLib Android AAR
         shell: bash
         run: |
           set -e
           mkdir -p app/libs
           curl -fL --retry 3 --retry-delay 2 \
-            https://github.com/AkashPriyadarshii/tdlib-android/releases/latest/download/core-release.aar \
+            https://repo1.maven.org/maven2/io/github/tdlib-android/core/0.1.1/core-0.1.1.aar \
             -o app/libs/core-release.aar
           test -s app/libs/core-release.aar
           ls -lh app/libs/core-release.aar
+          mkdir -p /tmp/aarcheck
+          unzip -q -o app/libs/core-release.aar classes.jar -d /tmp/aarcheck
+          unzip -l /tmp/aarcheck/classes.jar | grep -q 'org/drinkless/tdlib/TdApi.class' || (echo "AAR senza org.drinkless.tdlib.TdApi" && exit 1)
+          unzip -l /tmp/aarcheck/classes.jar | grep -q 'org/drinkless/tdlib/Client.class' || (echo "AAR senza org.drinkless.tdlib.Client" && exit 1)
+          unzip -l app/libs/core-release.aar | grep '\.so' || true
 
       - name: Build signed release
         shell: bash
@@ -108,16 +115,16 @@ jobs:
           set -e
           APK="app/build/outputs/apk/release/app-release.apk"
           test -s "$APK"
-          cp "$APK" TelegramPdfShare-v0.14.apk
-          sha256sum TelegramPdfShare-v0.14.apk > TelegramPdfShare-v0.14.sha256.txt
-          ls -lh TelegramPdfShare-v0.14.apk TelegramPdfShare-v0.14.sha256.txt
+          cp "$APK" TelegramPdfShare-v0.15.apk
+          sha256sum TelegramPdfShare-v0.15.apk > TelegramPdfShare-v0.15.sha256.txt
+          ls -lh TelegramPdfShare-v0.15.apk TelegramPdfShare-v0.15.sha256.txt
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TelegramPdfShare-v0.14-signed
+          name: TelegramPdfShare-v0.15-signed
           path: |
-            TelegramPdfShare-v0.14.apk
-            TelegramPdfShare-v0.14.sha256.txt
+            TelegramPdfShare-v0.15.apk
+            TelegramPdfShare-v0.15.sha256.txt
           if-no-files-found: error
           retention-days: 30

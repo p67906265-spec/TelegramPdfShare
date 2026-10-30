@@ -3,7 +3,7 @@ TelegramPdfShare v0.15 - aggiornamento da Termux
 cd ~
 rm -rf TelegramPdfShare TelegramPdfShare-tmp
 git clone https://github.com/p67906265-spec/TelegramPdfShare.git
-unzip -oq ~/storage/downloads/TelegramPdfShare_v2.zip -d TelegramPdfShare-tmp
+unzip -oq ~/storage/downloads/TelegramPdfShare_v3.zip -d TelegramPdfShare-tmp
 cp -rf TelegramPdfShare-tmp/TelegramPdfShare/. TelegramPdfShare/
 cd TelegramPdfShare
 git add -A
