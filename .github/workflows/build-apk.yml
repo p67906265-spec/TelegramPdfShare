@@ -80,22 +80,56 @@ jobs:
           test -s app/signing/release.p12
 
       # Il vecchio repository GitHub di TDLib (AkashPriyadarshii/tdlib-android) non esiste piu'.
-      # La stessa libreria e' pubblicata su Maven Central: scarico da li' lo stesso modulo "core".
+      # Provo piu' fonti in ordine e uso la prima il cui AAR contiene davvero
+      # org.drinkless.tdlib.Client e org.drinkless.tdlib.TdApi.
       - name: Download TDLib Android AAR
         shell: bash
         run: |
-          set -e
+          set +e
           mkdir -p app/libs
-          curl -fL --retry 3 --retry-delay 2 \
-            https://repo1.maven.org/maven2/io/github/tdlib-android/core/0.1.1/core-0.1.1.aar \
-            -o app/libs/core-release.aar
-          test -s app/libs/core-release.aar
+
+          check_aar() {
+            rm -rf /tmp/aarcheck && mkdir -p /tmp/aarcheck
+            unzip -q -o "$1" -d /tmp/aarcheck || return 1
+            echo "--- contenuto AAR (primi file) ---"
+            (cd /tmp/aarcheck && find . -type f | head -30)
+            local has_api=1 has_client=1
+            while IFS= read -r jar; do
+              unzip -l "$jar" 2>/dev/null | grep -q 'org/drinkless/tdlib/TdApi.class' && has_api=0
+              unzip -l "$jar" 2>/dev/null | grep -q 'org/drinkless/tdlib/Client.class' && has_client=0
+            done < <(find /tmp/aarcheck -name '*.jar')
+            if [ -d /tmp/aarcheck/classes ]; then
+              [ -f /tmp/aarcheck/classes/org/drinkless/tdlib/TdApi.class ] && has_api=0
+              [ -f /tmp/aarcheck/classes/org/drinkless/tdlib/Client.class ] && has_client=0
+            fi
+            [ $has_api -eq 0 ] && [ $has_client -eq 0 ]
+          }
+
+          found=0
+          for url in \
+            "https://repo1.maven.org/maven2/io/github/tdlib-android/core/0.1.0/core-0.1.0.aar" \
+            "https://repo1.maven.org/maven2/io/github/tdlib-android/core/0.1.1/core-0.1.1.aar" \
+            "https://jitpack.io/com/github/fazilus/tdlib-android/1.8.61/tdlib-android-1.8.61.aar" \
+            "https://jitpack.io/com/github/tdlibx/td/1.8.56/td-1.8.56.aar"
+          do
+            echo "=================================================="
+            echo "Provo: $url"
+            rm -f /tmp/candidate.aar
+            if curl -fL --retry 8 --retry-delay 20 --retry-all-errors -m 900 "$url" -o /tmp/candidate.aar \
+               && [ -s /tmp/candidate.aar ] && check_aar /tmp/candidate.aar; then
+              cp /tmp/candidate.aar app/libs/core-release.aar
+              echo "OK: uso $url"
+              found=1
+              break
+            fi
+            echo "Scartato: $url"
+          done
+
+          if [ $found -ne 1 ]; then
+            echo "Nessuna fonte TDLib valida (serve un AAR con org.drinkless.tdlib.Client e TdApi)"
+            exit 1
+          fi
           ls -lh app/libs/core-release.aar
-          mkdir -p /tmp/aarcheck
-          unzip -q -o app/libs/core-release.aar classes.jar -d /tmp/aarcheck
-          unzip -l /tmp/aarcheck/classes.jar | grep -q 'org/drinkless/tdlib/TdApi.class' || (echo "AAR senza org.drinkless.tdlib.TdApi" && exit 1)
-          unzip -l /tmp/aarcheck/classes.jar | grep -q 'org/drinkless/tdlib/Client.class' || (echo "AAR senza org.drinkless.tdlib.Client" && exit 1)
-          unzip -l app/libs/core-release.aar | grep '\.so' || true
 
       - name: Build signed release
         shell: bash

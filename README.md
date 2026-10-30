@@ -8,7 +8,7 @@
 - Colore personalizzabile per ogni tasto PDF: tieni premuto il tasto nella schermata principale, oppure tocca il pallino accanto al filtro nelle Impostazioni.
 - Impostazioni: Minuti, Inizio e Fine sulla stessa riga; filtri PDF in due colonne.
 - versionCode 15 / versionName 0.15, applicationId invariato.
-- Build: la libreria TDLib ora viene scaricata da Maven Central (io.github.tdlib-android:core:0.1.1), perché il vecchio repository GitHub non esiste più.
+- Build: il vecchio repository GitHub di TDLib non esiste più; il workflow prova più fonti (Maven Central, JitPack) e usa la prima con Client e TdApi.
 
 ## v0.13
 
