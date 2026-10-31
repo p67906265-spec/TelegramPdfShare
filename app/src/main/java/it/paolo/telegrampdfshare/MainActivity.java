@@ -57,10 +57,10 @@ public class MainActivity extends Activity {
 
     private static final int REQUEST_OPEN_PDF = 1001;
     private static final String PREFS = "telegram_pdf_share_prefs";
-    /** Numero totale di slot: 7 PDF da inoltrare + 1 slot "Scarica". */
+    /** Numero totale di slot PDF, tutti inoltrabili allo stesso modo. */
     static final int SLOT_COUNT = 8;
-    /** Lo slot che salva il PDF in Download invece di inoltrarlo a WhatsApp. */
-    static final int DOWNLOAD_SLOT = 8;
+    /** Nessuno slot speciale: 0 = tutti gli slot vengono inoltrati. */
+    static final int DOWNLOAD_SLOT = 0;
 
     static String slotLabel(int slot) {
         return slot == DOWNLOAD_SLOT ? "Scarica" : "PDF " + slot;
@@ -506,7 +506,7 @@ public class MainActivity extends Activity {
         ArrayList<Uri> uris = new ArrayList<>();
         ArrayList<Integer> sharedSlots = new ArrayList<>();
         ArrayList<String> sharedPaths = new ArrayList<>();
-        for (int slot = 1; slot < DOWNLOAD_SLOT; slot++) {
+        for (int slot = 1; slot <= SLOT_COUNT; slot++) {
             boolean found = prefs.getBoolean("search_found_" + slot, false)
                     && today.equals(prefs.getString("search_result_day_key_" + slot, ""));
             if (!found) continue;

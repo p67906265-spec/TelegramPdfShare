@@ -3,11 +3,11 @@ TelegramPdfShare v0.15 - aggiornamento da Termux
 cd ~
 rm -rf TelegramPdfShare TelegramPdfShare-tmp
 git clone https://github.com/p67906265-spec/TelegramPdfShare.git
-unzip -oq ~/storage/downloads/TelegramPdfShare_v4.zip -d TelegramPdfShare-tmp
+unzip -oq ~/storage/downloads/TelegramPdfShare_v5.zip -d TelegramPdfShare-tmp
 cp -rf TelegramPdfShare-tmp/TelegramPdfShare/. TelegramPdfShare/
 cd TelegramPdfShare
 git add -A
-git commit -m "TelegramPdfShare v0.15 - grafica compatta, slot Scarica, colori tasti"
+git commit -m "TelegramPdfShare v0.15 - grafica compatta, ottavo slot PDF, colori tasti"
 git push origin main
 rm -rf ~/TelegramPdfShare-tmp
 
